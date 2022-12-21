@@ -1,7 +1,7 @@
 
 
 
- const SHA256 = require('crypto-js/sha256');
+ const SHA256 =  require('crypto-js/sha256');
  const BlockClass = require('./block.js');
  const bitcoinMessage = require('bitcoinjs-message');
 
@@ -35,11 +35,16 @@
          return new Promise(async (resolve, reject) => {
             block.height = self.chain.length;
             block.time = new Date().getTime().toString().slice(0,-3);
+            block.height = self.chain.length;
+            block.time   = new Date().getTime().toString().slice(0,-3);
             if(self.chain.length > 0){
+                
                 block.previousBlockHash = self.chain[self.chain.length-1].hash;
             }
+            
             block.hash = SHA256(JSON.stringify(block)).toString();
             console.debug('validation of chain starts');
+            
             let errors = await self.validateChain();
             console.log(errors);
             console.debug('validation of Chain ends');
@@ -47,6 +52,8 @@
                 self.chain.push(block);
                 self.height++ ;
                 resolve(block)
+            
+            
             }else{
                 reject(errors);
             }
@@ -59,7 +66,7 @@
  
      requestMessageOwnershipVerification(address) {
          return new Promise((resolve) => {
-            const OwnershipMssage  = `${address}:new Date().getTime().toString().slice(0,-3):starRegistry`;
+            const OwnershipMessage  = `${address}:new Date().getTime().toString().slice(0,-3)}:starRegistry`;
                    resolve(OwnershipMessage  );
 
              
@@ -70,23 +77,23 @@
          return new Promise(async (resolve, reject) => {
             let temps = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0,-3));
-            if((currentTime - temps) <  ( 5 * 60)) {
-                if(bitcoinMessage.verify(messge,address,signature)){
+            
+            if((currentTime - temps) <  ( 60*60)) {
+            
+                if(bitcoinMessage.verify(message,address,signature)){
                     let block = new BlockClass.Block({"owner": address,"star":star});
                     self._addBlock(block);
                     resolve(block);
                 } else {
                     reject ( Error('Message is not verified'))
+                    
                 }
 
             } else {
-                reject(Error('too much time has passed, stay below 5 minutes'))
-            }    
-
-                
-            
-             
-         });
+                reject(Error('too much time has passed, stay below 60 minutes'))
+            } 
+           
+       });
      }
  
      
@@ -94,14 +101,15 @@
          let self = this;
          return new Promise((resolve, reject) => {
             const block = self.chain.filter(block => block.hash ===hash);
+        
             if ( typeof block !=  'undefined'){
                 resolve(block);
             
             }else{
                 reject(Error("No block with this hash"))
             }
-            
-         });
+        
+    });
      }
  
      
@@ -134,7 +142,7 @@
             }
 
          })
-         resolve (stars);
+         resolve(stars);
 
 
              
@@ -169,7 +177,7 @@
                     if(!valid){
                         const invalidBlock = self.chain[index];
                         const  errorMessage = `Block ${index}hash (${invalidBlock.hash})is invalid`;
-                        errorLog.push(errorMessge);
+                        errorLog.push(errorMessage);
                     }
                     
                 });
